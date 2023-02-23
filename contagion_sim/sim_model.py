@@ -39,6 +39,7 @@ class SimModel(AbstractSimModel):
     Main purpose of this model is to simplify the understanding of the
     MultisimModel which runs multiple simulations in parallel.
     """
+    tempmax = 0
 
     def __init__(self, nodes, edge_batch_gen, infected_p, infection_p,
                  recovery_t, recovery_w, n_days,  plt_ax=None, tqdm=None):
@@ -77,6 +78,8 @@ class SimModel(AbstractSimModel):
 
         self.snapshots = []
 
+        self.tempmax = 0
+
     def infect(self, nodes):
         """
         Set nodes to infected.
@@ -84,8 +87,15 @@ class SimModel(AbstractSimModel):
         """
         self.nodes.loc[nodes, 'S'] = False
         self.nodes.loc[nodes, 'I'] = True
-        self.nodes.loc[nodes, 'R_t'] = \
-            np.random.normal(self.recovery_t, self.recovery_w, len(nodes))
+        temp = np.random.normal(self.recovery_t, self.recovery_w, len(nodes))
+        #store the highest value of recovery time in the array
+        #check if length of temp is 1 or not
+        if len(temp) > 0:
+            self.tempmax = max(self.tempmax, max(temp))
+        print("tempmax:" , self.tempmax)
+        print(temp)
+        self.nodes.loc[nodes, 'R_t'] = temp
+            
 
     def recover(self, nodes):
         """
